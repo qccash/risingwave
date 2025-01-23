@@ -459,6 +459,11 @@ impl MySqlExternalTableReader {
                 opts_builder.ssl_opts(Some(ssl_without_verify))
             }
         };
+
+        // Since there is no socket config in ExternalTableConfig, we barely use it. 
+        // So we set prefer_socket to false.
+        opts_builder = opts_builder.prefer_socket(false);
+
         let pool = mysql_async::Pool::new(opts_builder);
 
         let field_names = rw_schema
