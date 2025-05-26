@@ -120,7 +120,7 @@ public class JDBCSinkFactory implements SinkFactory {
             }
         }
 
-        if (sinkType == SinkType.SINK_TYPE_UPSERT) {
+        if (sinkType == SinkType.SINK_TYPE_UPSERT && config.isKeyValidation()) {
             // For upsert JDBC sink, the primary key defined on the table must match the one in
             // config and cannot be empty
             var pkInWith = new HashSet<>(tableSchema.getPrimaryKeys());

@@ -44,6 +44,15 @@ public class JDBCSinkConfig extends CommonSinkConfig {
     @JsonProperty(value = "jdbc.auto.commit")
     private boolean autoCommit = false;
 
+    @JsonProperty(value = "jdbc.batch.size")
+    private int batchSize = 100;
+
+    @JsonProperty(value = "jdbc.batch.sort")
+    private boolean batchSort = false;
+
+    @JsonProperty(value = "jdbc.key.validation")
+    private boolean keyValidation = true;
+
     @JsonProperty(value = "database.name")
     private String databaseName;
 
@@ -96,6 +105,18 @@ public class JDBCSinkConfig extends CommonSinkConfig {
 
     public boolean isAutoCommit() {
         return autoCommit;
+    }
+
+    public int getBatchSize() {
+        return batchSize;
+    }
+
+    public boolean isBatchSort() {
+        return batchSort;
+    }
+
+    public boolean isKeyValidation() {
+        return keyValidation;
     }
 
     public String getDatabaseName() {

@@ -39,4 +39,12 @@ public class ArraySinkRow implements SinkRow {
     public int size() {
         return values.length;
     }
+
+    public static ArraySinkRow from(SinkRow row) {
+        Object[] values = new Object[row.size()];
+        for (int i = 0; i < row.size(); i++) {
+            values[i] = row.get(i);
+        }
+        return new ArraySinkRow(row.getOp(), values);
+    }
 }

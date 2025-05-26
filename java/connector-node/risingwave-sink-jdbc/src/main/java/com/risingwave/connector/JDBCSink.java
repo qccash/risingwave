@@ -15,6 +15,7 @@
 package com.risingwave.connector;
 
 import com.risingwave.connector.api.TableSchema;
+import com.risingwave.connector.api.sink.ComparableSinkRowWrapper;
 import com.risingwave.connector.api.sink.SinkRow;
 import com.risingwave.connector.api.sink.SinkWriter;
 import com.risingwave.connector.jdbc.JdbcDialect;
@@ -35,6 +36,8 @@ public class JDBCSink implements SinkWriter {
     private Connection conn;
     private JdbcStatements jdbcStatements;
     private final List<String> pkColumnNames;
+    private final int batchSize;
+    private final Comparator<ComparableSinkRowWrapper> comparator;
 
     private final TableSchema tableSchema;
 
@@ -55,7 +58,7 @@ public class JDBCSink implements SinkWriter {
         var jdbcUrl = config.getJdbcUrl().toLowerCase();
         var factory = JdbcUtils.getDialectFactory(jdbcUrl);
         this.config = config;
-
+        this.batchSize = config.getBatchSize();
         try {
             conn = config.getConnection();
             // Table schema has been validated before, so we get the PK from it directly
@@ -75,14 +78,42 @@ public class JDBCSink implements SinkWriter {
                             .map(tableSchema::getColumnIndex)
                             .collect(Collectors.toList());
 
+            this.comparator =
+                    (r1, r2) -> {
+                        for (Integer pkIndex : pkIndices) {
+                            Object o1 = r1.get(pkIndex);
+                            Object o2 = r2.get(pkIndex);
+                            if (o1 == null && o2 == null) {
+                                continue;
+                            }
+                            if (o1 == null) {
+                                return -1;
+                            }
+                            if (o2 == null) {
+                                return 1;
+                            }
+                            @SuppressWarnings("unchecked")
+                            Comparable<Object> c1 = (Comparable<Object>) o1;
+                            @SuppressWarnings("unchecked")
+                            Comparable<Object> c2 = (Comparable<Object>) o2;
+                            int cmp = c1.compareTo(c2);
+                            if (cmp != 0) {
+                                return cmp;
+                            }
+                        }
+                        return Integer.compare(r1.getInternalIndex(), r2.getInternalIndex());
+                    };
+
             LOG.info(
-                    "schema = {}, table = {}, tableSchema = {}, columnSqlTypes = {}, pkIndices = {}, queryTimeout = {}",
+                    "schema = {}, table = {}, tableSchema = {}, columnSqlTypes = {}, pkIndices = {}, "
+                            + "queryTimeout = {}, batchSize = {}",
                     config.getSchemaName(),
                     config.getTableName(),
                     tableSchema,
                     columnSqlTypes,
                     pkIndices,
-                    config.getQueryTimeout());
+                    config.getQueryTimeout(),
+                    config.getBatchSize());
 
             if (factory.isPresent()) {
                 this.jdbcDialect = factory.get().create(columnSqlTypes, pkIndices);
@@ -144,6 +175,32 @@ public class JDBCSink implements SinkWriter {
 
     @Override
     public boolean write(Iterable<SinkRow> rows) {
+        if (!config.isBatchSort()) {
+            return internalWrite(rows);
+        }
+
+        TreeSet<ComparableSinkRowWrapper> batch = new TreeSet<>(comparator);
+        boolean result = true;
+
+        int index = 0;
+        for (SinkRow row : rows) {
+            ComparableSinkRowWrapper localRow = ComparableSinkRowWrapper.from(row, index);
+            batch.add(localRow);
+            if (batch.size() >= batchSize) {
+                result = result && internalWrite(batch);
+                batch.clear();
+            }
+            index++;
+        }
+
+        if (!batch.isEmpty()) {
+            result = result && internalWrite(batch);
+        }
+
+        return result;
+    }
+
+    public boolean internalWrite(Iterable<? extends SinkRow> rows) {
         final int maxRetryCount = 4;
         int retryCount = 0;
         while (true) {
