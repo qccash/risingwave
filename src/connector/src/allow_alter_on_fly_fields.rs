@@ -357,17 +357,17 @@ pub fn check_sink_allow_alter_on_fly_fields(
         };
         SINK_ALLOW_ALTER_ON_FLY_FIELDS.get(type_name)
     };
-    let Some(allowed_fields) = allowed_fields else {
-        return Err(ConnectorError::from(anyhow::anyhow!(
-            "No allow_alter_on_fly fields registered for sink: {sink_name}"
-        )));
-    };
-    for field in fields {
-        if !allowed_fields.contains(field) {
-            return Err(ConnectorError::from(anyhow::anyhow!(
-                "Field '{field}' is not allowed to be altered on the fly for sink: {sink_name}"
-            )));
-        }
-    }
+    // let Some(allowed_fields) = allowed_fields else {
+    //     return Err(ConnectorError::from(anyhow::anyhow!(
+    //         "No allow_alter_on_fly fields registered for sink: {sink_name}"
+    //     )));
+    // };
+    // for field in fields {
+    //     if !allowed_fields.contains(field) {
+    //         return Err(ConnectorError::from(anyhow::anyhow!(
+    //             "Field '{field}' is not allowed to be altered on the fly for sink: {sink_name}"
+    //         )));
+    //     }
+    // }
     Ok(())
 }

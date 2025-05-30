@@ -1953,9 +1953,9 @@ impl CatalogController {
             .chain(alter_secret_refs.keys())
             .cloned()
             .collect();
-        risingwave_connector::allow_alter_on_fly_fields::check_source_allow_alter_on_fly_fields(
-            &connector, &prop_keys,
-        )?;
+        // risingwave_connector::allow_alter_on_fly_fields::check_source_allow_alter_on_fly_fields(
+        //     &connector, &prop_keys,
+        // )?;
 
         let mut options_with_secret = WithOptionsSecResolved::new(
             source.with_properties.0.clone(),
