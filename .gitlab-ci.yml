@@ -1,0 +1,56 @@
+stages:
+  - build
+  - build_script
+  - build_sqlparser
+
+variables:
+  KUBERNETES_NODE_TOLERATIONS_1: 'spark-infra:NoSchedule'
+  KUBERNETES_CPU_REQUEST: "6"
+  KUBERNETES_CPU_LIMIT: "6"
+  KUBERNETES_MEMORY_REQUEST: "32Gi"
+  KUBERNETES_MEMORY_LIMIT: "32Gi"
+
+build:
+  stage: build
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  tags:
+    - infra
+    - k8s
+  script:
+    - sh ci/scripts/kaniko-aig.sh
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED != "true"
+      when: never
+    - if: $RUN_STAGE == "build"
+
+build_script:
+  stage: build_script
+  image:
+    name: gcr.io/kaniko-project/executor:v1.23.2-debug
+    entrypoint: [""]
+  tags:
+    - infra
+    - k8s
+  script:
+    - sh ci/scripts/kaniko-aig-script.sh
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED != "true"
+      when: never
+    - if: $RUN_STAGE == "build_script"
+
+build_sqlparser:
+  stage: build_sqlparser
+  image:
+      name: ghcr.io/pyo3/maturin:v1.8.3
+      entrypoint: [""]
+  tags:
+      - infra
+      - k8s
+  script:
+      - sh ci/scripts/maturin-build.sh
+  rules:
+    - if: $CI_COMMIT_REF_PROTECTED != "true"
+      when: never
+    - if: $RUN_STAGE == "build_sqlparser"
