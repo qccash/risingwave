@@ -1,0 +1,14 @@
+[package]
+name = "sqlx-test"
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+sqlx = { default-features = false, path = ".." }
+env_logger = "0.11"
+dotenvy = "0.15.0"
+anyhow = "1.0.26"
+
+[lints]
+workspace = true

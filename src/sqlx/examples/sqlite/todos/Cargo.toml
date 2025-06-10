@@ -1,0 +1,12 @@
+[package]
+name = "sqlx-example-sqlite-todos"
+version = "0.1.0"
+edition = "2018"
+workspace = "../../../"
+
+[dependencies]
+anyhow = "1.0"
+futures = "0.3"
+sqlx = { path = "../../../", features = [ "sqlite", "runtime-tokio", "tls-native-tls" ] }
+clap = { version = "4", features = ["derive"] }
+tokio = { workspace = true, optional = true }

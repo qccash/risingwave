@@ -1,0 +1,12 @@
+[package]
+name = "sqlx-example-mysql-todos"
+version = "0.1.0"
+edition = "2021"
+workspace = "../../../"
+
+[dependencies]
+anyhow = "1.0"
+futures = "0.3"
+sqlx = { path = "../../../", features = [ "mysql", "runtime-tokio", "tls-native-tls" ] }
+clap = { version = "4", features = ["derive"] }
+tokio = { workspace = true, optional = true }
