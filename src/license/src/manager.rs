@@ -181,7 +181,7 @@ impl Default for License {
     fn default() -> Self {
         Self {
             sub: "default".to_owned(),
-            tier: Tier::Free,
+            tier: Tier::All,
             iss: Issuer::Prod,
             rwu_limit: None,
             exp: u64::MAX,
@@ -253,32 +253,7 @@ impl LicenseManager {
     pub fn refresh(&self, license_key: LicenseKeyRef<'_>) {
         let license_key = license_key.0;
         let mut inner = self.inner.write().unwrap();
-
-        // Empty license key means unset. Use the default one here.
-        if license_key.is_empty() {
-            inner.license = Ok(License::default());
-            return;
-        }
-
-        // TODO(license): shall we also validate `nbf`(Not Before)?
-        let mut validation = Validation::new(Algorithm::RS512);
-        // Only accept `prod` issuer in production, so that we can use license keys issued by
-        // the `test` issuer in development without leaking them to production.
-        validation.set_issuer(&[
-            "prod.risingwave.com",
-            #[cfg(debug_assertions)]
-            "test.risingwave.com",
-        ]);
-
-        inner.license = match jsonwebtoken::decode(license_key, &PUBLIC_KEY, &validation) {
-            Ok(data) => Ok(data.claims),
-            Err(error) => Err(LicenseError::InvalidKey(error)),
-        };
-
-        match &inner.license {
-            Ok(license) => tracing::info!(?license, "license refreshed"),
-            Err(error) => tracing::warn!(error = %error.as_report(), "invalid license key"),
-        }
+        inner.license = Ok(License::default());
     }
 
     /// Update the cached cluster resource.

@@ -156,8 +156,8 @@ impl Default for SystemData {
 
 /// check whether telemetry is enabled in environment variable
 pub fn telemetry_env_enabled() -> bool {
-    // default to be true
-    env_var_is_true_or(TELEMETRY_ENV_ENABLE, true)
+    // default to be false
+    env_var_is_true_or(TELEMETRY_ENV_ENABLE, false)
 }
 
 pub fn report_scarf_enabled() -> bool {
