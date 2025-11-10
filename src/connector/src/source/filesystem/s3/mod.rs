@@ -44,6 +44,8 @@ pub struct S3PropertiesCommon {
     pub enable_config_load: Option<bool>,
     #[serde(rename = "s3.endpoint_url")]
     pub endpoint_url: Option<String>,
+    #[serde(rename = "s3.use_virtual_host_style", default, deserialize_with = "deserialize_optional_bool_from_string")]
+    pub use_virtual_host_style: Option<bool>,
 }
 
 impl S3PropertiesCommon {

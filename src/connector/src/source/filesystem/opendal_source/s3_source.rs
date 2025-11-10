@@ -54,6 +54,10 @@ impl<Src: OpendalSource> OpendalEnumerator<Src> {
             builder = builder.role_arn(&assume_role);
         }
 
+        if let Some(true) = &s3_properties.use_virtual_host_style {
+            builder = builder.enable_virtual_host_style();
+        }
+
         let (prefix, matcher) = if let Some(pattern) = s3_properties.match_pattern.as_ref() {
             let prefix = get_prefix(pattern);
             let matcher = glob::Pattern::new(pattern)
