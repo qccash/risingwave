@@ -133,9 +133,10 @@ public class DbzConnectorConfig {
         var isCdcBackfill =
                 null != userProps.get(SNAPSHOT_MODE_KEY)
                         && userProps.get(SNAPSHOT_MODE_KEY).equals(SNAPSHOT_MODE_BACKFILL);
-        var waitStreamingStartTimeout =
-                Integer.parseInt(
-                        userProps.getOrDefault(WAIT_FOR_STREAMING_START_TIMEOUT_SECS, "60"));
+        var waitStreamingStartTimeout = 600;
+        // default wait for 10 minutes for streaming to start, to avoid schema history inconsistency
+        //        Integer.parseInt(
+        //                userProps.getOrDefault(WAIT_FOR_STREAMING_START_TIMEOUT_SECS, "60"));
 
         LOG.info(
                 "DbzConnectorConfig: source={}, sourceId={}, startOffset={}, snapshotDone={}, isCdcBackfill={}, isCdcSourceJob={}, waitStreamingStartTimeout={}",
