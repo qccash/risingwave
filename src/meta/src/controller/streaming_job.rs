@@ -2492,7 +2492,7 @@ fn update_stmt_with_props(
         .collect::<IndexMap<_, _>>();
     let add_sql_options = props
         .iter()
-        .map(|(k, v)| SqlOption::try_from((k, v)))
+        .map(|(k, v)| SqlOption::try_from((k, &format!("'{}'", v))))
         .collect::<Result<Vec<SqlOption>, ParserError>>()
         .map_err(|e| SinkError::Config(anyhow!(e)))?;
     new_sql_options.extend(
