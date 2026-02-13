@@ -387,6 +387,13 @@ pub enum Command {
         upstream_mv_table_id: TableId,
     },
 
+    /// `AlterSubscriptionRetention` updates retention for an existing subscription.
+    AlterSubscriptionRetention {
+        subscription_id: SubscriptionId,
+        upstream_mv_table_id: TableId,
+        retention_second: u64,
+    },
+
     ConnectorPropsChange(ConnectorPropsChange),
 
     /// `StartFragmentBackfill` command will trigger backfilling for specified scans by `fragment_id`.
@@ -444,6 +451,9 @@ impl std::fmt::Display for Command {
             Command::DropSubscription {
                 subscription_id, ..
             } => write!(f, "DropSubscription: {subscription_id}"),
+            Command::AlterSubscriptionRetention {
+                subscription_id, ..
+            } => write!(f, "AlterSubscriptionRetention: {subscription_id}"),
             Command::ConnectorPropsChange(_) => write!(f, "ConnectorPropsChange"),
             Command::StartFragmentBackfill { .. } => write!(f, "StartFragmentBackfill"),
             Command::Refresh {
@@ -616,6 +626,7 @@ impl Command {
             Command::Throttle(_) => None,
             Command::CreateSubscription { .. } => None,
             Command::DropSubscription { .. } => None,
+            Command::AlterSubscriptionRetention { .. } => None,
             Command::ConnectorPropsChange(_) => None,
             Command::StartFragmentBackfill { .. } => None,
             Command::Refresh { .. } => None, // Refresh doesn't change fragment structure
@@ -1302,6 +1313,7 @@ impl Command {
                     upstream_mv_table_id: *upstream_mv_table_id,
                 }],
             })),
+            Command::AlterSubscriptionRetention { .. } => None,
             Command::ConnectorPropsChange(config) => {
                 let mut connector_props_infos = HashMap::default();
                 for (k, v) in config {

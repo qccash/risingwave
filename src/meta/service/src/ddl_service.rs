@@ -845,6 +845,27 @@ impl DdlService for DdlServiceImpl {
         }))
     }
 
+    async fn alter_subscription_retention(
+        &self,
+        request: Request<AlterSubscriptionRetentionRequest>,
+    ) -> Result<Response<AlterSubscriptionRetentionResponse>, Status> {
+        let AlterSubscriptionRetentionRequest {
+            subscription_id,
+            retention_seconds,
+        } = request.into_inner();
+        let version = self
+            .ddl_controller
+            .run_command(DdlCommand::AlterSubscriptionRetention(
+                subscription_id,
+                retention_seconds,
+            ))
+            .await?;
+        Ok(Response::new(AlterSubscriptionRetentionResponse {
+            status: None,
+            version,
+        }))
+    }
+
     async fn get_ddl_progress(
         &self,
         _request: Request<GetDdlProgressRequest>,

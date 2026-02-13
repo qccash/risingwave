@@ -209,6 +209,7 @@ pub enum AlterSubscriptionOperation {
     RenameSubscription { subscription_name: ObjectName },
     ChangeOwner { new_owner_name: Ident },
     SetSchema { new_schema_name: ObjectName },
+    SetRetention { retention: String },
     SwapRenameSubscription { target_subscription: ObjectName },
 }
 
@@ -523,6 +524,9 @@ impl fmt::Display for AlterSubscriptionOperation {
             }
             AlterSubscriptionOperation::SetSchema { new_schema_name } => {
                 write!(f, "SET SCHEMA {}", new_schema_name)
+            }
+            AlterSubscriptionOperation::SetRetention { retention } => {
+                write!(f, "SET RETENTION TO '{}'", retention)
             }
             AlterSubscriptionOperation::SwapRenameSubscription {
                 target_subscription,

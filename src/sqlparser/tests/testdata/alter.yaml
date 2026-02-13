@@ -25,3 +25,7 @@
   formatted_sql: ALTER SOURCE t_source CONNECTOR WITH (properties.receive.message.max.bytes = secret s2)
 - input: ALTER SOURCE test_src CONNECTOR WITH (debezium.column.truncate.to."2000000".chars = 'value1');
   formatted_sql: ALTER SOURCE test_src CONNECTOR WITH (debezium.column.truncate.to."2000000".chars = 'value1')
+- input: ALTER SUBSCRIPTION sub1 SET RETENTION TO '1H';
+  formatted_sql: ALTER SUBSCRIPTION sub1 SET RETENTION TO '1H'
+- input: ALTER SUBSCRIPTION sub1 SET RETENTION = '2D';
+  formatted_sql: ALTER SUBSCRIPTION sub1 SET RETENTION TO '2D'

@@ -185,6 +185,7 @@ pub enum DdlCommand {
     CommentOn(Comment),
     CreateSubscription(Subscription),
     DropSubscription(SubscriptionId, DropMode),
+    AlterSubscriptionRetention(SubscriptionId, u64),
     AlterDatabaseParam(DatabaseId, AlterDatabaseParam),
 }
 
@@ -219,6 +220,7 @@ impl DdlCommand {
             DdlCommand::CommentOn(comment) => Right(comment.table_id.into()),
             DdlCommand::CreateSubscription(subscription) => Left(subscription.name.clone()),
             DdlCommand::DropSubscription(id, _) => Right(id.as_object_id()),
+            DdlCommand::AlterSubscriptionRetention(id, _) => Right(id.as_object_id()),
             DdlCommand::AlterDatabaseParam(id, _) => Right(id.as_object_id()),
         }
     }
@@ -251,7 +253,8 @@ impl DdlCommand {
             | DdlCommand::CreateNonSharedSource(_)
             | DdlCommand::ReplaceStreamJob(_)
             | DdlCommand::AlterNonSharedSource(_)
-            | DdlCommand::CreateSubscription(_) => false,
+            | DdlCommand::CreateSubscription(_)
+            | DdlCommand::AlterSubscriptionRetention(_, _) => false,
         }
     }
 }
@@ -447,6 +450,10 @@ impl DdlController {
                 }
                 DdlCommand::DropSubscription(subscription_id, drop_mode) => {
                     ctrl.drop_subscription(subscription_id, drop_mode).await
+                }
+                DdlCommand::AlterSubscriptionRetention(subscription_id, retention_seconds) => {
+                    ctrl.alter_subscription_retention(subscription_id, retention_seconds)
+                        .await
                 }
                 DdlCommand::AlterSwapRename(objects) => ctrl.alter_swap_rename(objects).await,
                 DdlCommand::AlterDatabaseParam(database_id, param) => {
@@ -779,6 +786,38 @@ impl DdlController {
             .drop_subscription(database_id, subscription_id, table_id)
             .await;
         tracing::debug!("finish drop subscription");
+        Ok(version)
+    }
+
+    async fn alter_subscription_retention(
+        &self,
+        subscription_id: SubscriptionId,
+        retention_seconds: u64,
+    ) -> MetaResult<NotificationVersion> {
+        tracing::debug!(
+            %subscription_id,
+            retention_seconds,
+            "altering subscription retention"
+        );
+        let _reschedule_job_lock = self.stream_manager.reschedule_lock_read_guard().await;
+        let subscription = self
+            .metadata_manager
+            .catalog_controller
+            .get_subscription_by_id(subscription_id)
+            .await?;
+        self.stream_manager
+            .alter_subscription_retention(
+                subscription.database_id,
+                subscription_id,
+                subscription.dependent_table_id,
+                retention_seconds,
+            )
+            .await?;
+        let version = self
+            .metadata_manager
+            .catalog_controller
+            .alter_subscription_retention(subscription_id, retention_seconds)
+            .await?;
         Ok(version)
     }
 

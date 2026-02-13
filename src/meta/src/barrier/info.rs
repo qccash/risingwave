@@ -620,6 +620,19 @@ impl InflightDatabaseInfo {
             .remove(&subscriber_id)
     }
 
+    pub fn update_subscriber(
+        &mut self,
+        job_id: JobId,
+        subscriber_id: u32,
+        subscriber: SubscriberType,
+    ) -> Option<SubscriberType> {
+        self.jobs
+            .get_mut(&job_id)
+            .expect("should exist")
+            .subscribers
+            .insert(subscriber_id, subscriber)
+    }
+
     fn fragment_mut(&mut self, fragment_id: FragmentId) -> (&mut InflightFragmentInfo, JobId) {
         let job_id = self.fragment_location[&fragment_id];
         let fragment = self
@@ -896,6 +909,7 @@ impl InflightDatabaseInfo {
                 | Command::Throttle(_)
                 | Command::CreateSubscription { .. }
                 | Command::DropSubscription { .. }
+                | Command::AlterSubscriptionRetention { .. }
                 | Command::ConnectorPropsChange(_)
                 | Command::StartFragmentBackfill { .. }
                 | Command::Refresh { .. }

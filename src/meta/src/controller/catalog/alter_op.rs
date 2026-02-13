@@ -23,6 +23,45 @@ use sea_orm::{ActiveModelTrait, DatabaseTransaction};
 use super::*;
 
 impl CatalogController {
+    pub async fn alter_subscription_retention(
+        &self,
+        subscription_id: SubscriptionId,
+        retention_seconds: u64,
+    ) -> MetaResult<NotificationVersion> {
+        let inner = self.inner.write().await;
+        let txn = inner.db.begin().await?;
+        let (subscription, obj) = Subscription::find_by_id(subscription_id)
+            .find_also_related(Object)
+            .one(&txn)
+            .await?
+            .ok_or_else(|| MetaError::catalog_id_not_found("subscription", subscription_id))?;
+
+        let subscription = subscription::ActiveModel {
+            subscription_id: Set(subscription_id),
+            retention_seconds: Set(retention_seconds as i64),
+            ..subscription.into_active_model()
+        }
+        .update(&txn)
+        .await?;
+
+        txn.commit().await?;
+
+        let version = self
+            .notify_frontend(
+                NotificationOperation::Update,
+                NotificationInfo::ObjectGroup(PbObjectGroup {
+                    objects: vec![PbObject {
+                        object_info: PbObjectInfo::Subscription(
+                            ObjectModel(subscription, obj.unwrap()).into(),
+                        )
+                        .into(),
+                    }],
+                }),
+            )
+            .await;
+        Ok(version)
+    }
+
     async fn alter_database_name(
         &self,
         database_id: DatabaseId,

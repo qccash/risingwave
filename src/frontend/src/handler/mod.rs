@@ -56,6 +56,7 @@ mod alter_source_props;
 mod alter_source_with_sr;
 mod alter_streaming_enable_unaligned_join;
 mod alter_streaming_rate_limit;
+mod alter_subscription_set_retention;
 mod alter_swap_rename;
 mod alter_system;
 mod alter_table_column;
@@ -1131,6 +1132,14 @@ pub async fn handle(
                     name,
                     target_subscription,
                     StatementType::ALTER_SUBSCRIPTION,
+                )
+                .await
+            }
+            AlterSubscriptionOperation::SetRetention { retention } => {
+                alter_subscription_set_retention::handle_alter_subscription_set_retention(
+                    handler_args,
+                    name,
+                    retention,
                 )
                 .await
             }

@@ -218,6 +218,12 @@ pub trait CatalogWriter: Send + Sync {
 
     async fn alter_owner(&self, object: alter_owner_request::Object, owner_id: u32) -> Result<()>;
 
+    async fn alter_subscription_retention(
+        &self,
+        subscription_id: SubscriptionId,
+        retention_seconds: u64,
+    ) -> Result<()>;
+
     /// Replace the source in the catalog.
     async fn alter_source(&self, source: PbSource) -> Result<()>;
 
@@ -592,6 +598,18 @@ impl CatalogWriter for CatalogWriterImpl {
 
     async fn alter_owner(&self, object: alter_owner_request::Object, owner_id: u32) -> Result<()> {
         let version = self.meta_client.alter_owner(object, owner_id).await?;
+        self.wait_version(version).await
+    }
+
+    async fn alter_subscription_retention(
+        &self,
+        subscription_id: SubscriptionId,
+        retention_seconds: u64,
+    ) -> Result<()> {
+        let version = self
+            .meta_client
+            .alter_subscription_retention(subscription_id, retention_seconds)
+            .await?;
         self.wait_version(version).await
     }
 

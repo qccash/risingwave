@@ -192,6 +192,9 @@ for_all_wrapped_id_fields! (
         AlterSetSchemaRequest {
             new_schema_id: SchemaId,
         }
+        AlterSubscriptionRetentionRequest {
+            subscription_id: SubscriptionId,
+        }
         AlterSwapRenameRequest.ObjectNameSwapPair {
             src_object_id: ObjectId,
             dst_object_id: ObjectId,

@@ -303,6 +303,16 @@ message AlterSetSchemaResponse {
   WaitVersion version = 2;
 }
 
+message AlterSubscriptionRetentionRequest {
+  uint32 subscription_id = 1;
+  uint64 retention_seconds = 2;
+}
+
+message AlterSubscriptionRetentionResponse {
+  common.Status status = 1;
+  WaitVersion version = 2;
+}
+
 message AlterParallelismRequest {
   // job id
   uint32 table_id = 1;
@@ -653,6 +663,7 @@ service DdlService {
   rpc AlterSource(AlterSourceRequest) returns (AlterSourceResponse);
   rpc AlterOwner(AlterOwnerRequest) returns (AlterOwnerResponse);
   rpc AlterSetSchema(AlterSetSchemaRequest) returns (AlterSetSchemaResponse);
+  rpc AlterSubscriptionRetention(AlterSubscriptionRetentionRequest) returns (AlterSubscriptionRetentionResponse);
   rpc AlterParallelism(AlterParallelismRequest) returns (AlterParallelismResponse);
   rpc AlterFragmentParallelism(AlterFragmentParallelismRequest) returns (AlterFragmentParallelismResponse);
   rpc AlterResourceGroup(AlterResourceGroupRequest) returns (AlterResourceGroupResponse);

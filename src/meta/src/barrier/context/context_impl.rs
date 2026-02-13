@@ -473,6 +473,7 @@ impl CommandContext {
                     .await?
             }
             Command::DropSubscription { .. } => {}
+            Command::AlterSubscriptionRetention { .. } => {}
             Command::MergeSnapshotBackfillStreamingJobs(_) => {}
             Command::StartFragmentBackfill { .. } => {}
             Command::ListFinish { .. } | Command::LoadFinish { .. } | Command::Refresh { .. } => {}

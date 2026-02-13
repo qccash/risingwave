@@ -172,6 +172,27 @@ impl BarrierWorkerState {
                     SubscriberType::Subscription(*retention_second),
                 );
             }
+            Some(Command::AlterSubscriptionRetention {
+                subscription_id,
+                upstream_mv_table_id,
+                retention_second,
+            }) => {
+                if self
+                    .inflight_graph_info
+                    .update_subscriber(
+                        upstream_mv_table_id.as_job_id(),
+                        subscription_id.as_raw_id(),
+                        SubscriberType::Subscription(*retention_second),
+                    )
+                    .is_none()
+                {
+                    warn!(
+                        %subscription_id,
+                        %upstream_mv_table_id,
+                        "no subscription to update retention"
+                    );
+                }
+            }
             Some(Command::CreateStreamingJob {
                 info,
                 job_type: CreateStreamingJobType::SnapshotBackfill(snapshot_backfill_info),
